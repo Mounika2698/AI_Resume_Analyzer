@@ -1,0 +1,130 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  password  String
+  name      String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  resumes      Resume[]
+  jobDescriptions JobDescription[]
+  analyses     Analysis[]
+  interviewQuestions InterviewQuestion[]
+
+  @@map("users")
+}
+
+model Resume {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  fileName  String
+  fileType  String     // pdf, docx, txt
+  fileSize  Int
+  
+  name      String?
+  email     String?
+  phone     String?
+  location  String?
+  skills    String     // JSON array
+  education String     // JSON array
+  experience String    // JSON array
+  projects  String     // JSON array
+  certifications String? // JSON array
+  summary   String?
+  
+  rawText   String     // Full extracted text for reference
+  
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  
+  analyses  Analysis[]
+
+  @@map("resumes")
+}
+
+model JobDescription {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title     String
+  company   String?
+  content   String     // Full job description text
+  
+  requiredSkills String  // JSON array
+  preferredSkills String // JSON array
+  
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  
+  analyses  Analysis[]
+
+  @@map("job_descriptions")
+}
+
+model Analysis {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  resumeId  String
+  resume    Resume     @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  
+  jobDescriptionId String
+  jobDescription   JobDescription @relation(fields: [jobDescriptionId], references: [id], onDelete: Cascade)
+  
+  // ATS Scoring
+  overallScore      Int
+  keywordMatchScore Int
+  skillsMatchScore  Int
+  experienceScore   Int
+  educationScore    Int
+  structureScore    Int
+  formatScore       Int
+  
+  // AI Analysis
+  summary          String?
+  strengths        String? // JSON array
+  weaknesses       String? // JSON array
+  missingSkills    String? // JSON array (with category)
+  improvements     String? // JSON array
+  
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  
+  interviewQuestions InterviewQuestion[]
+
+  @@map("analyses")
+}
+
+model InterviewQuestion {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  analysisId String
+  analysis   Analysis   @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  
+  category  String     // technical, behavioral, project-specific
+  question  String
+  suggestedAnswer String?
+  
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("interview_questions")
+}

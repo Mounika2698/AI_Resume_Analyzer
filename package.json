@@ -1,0 +1,34 @@
+{
+  "name": "ai-resume-analyzer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-powered resume analyzer with local Ollama integration",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=server\" \"npm run dev --workspace=client\"",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "typecheck": "npm run typecheck --workspaces",
+    "format": "npm run format --workspaces",
+    "format:check": "prettier --check .",
+    "db:migrate": "npm run db:migrate --workspace=server",
+    "db:seed": "npm run db:seed --workspace=server"
+  },
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "prettier": "^3.1.1"
+  },
+  "keywords": [
+    "resume",
+    "analyzer",
+    "ai",
+    "ats",
+    "job-description"
+  ],
+  "author": "AI Resume Analyzer",
+  "license": "MIT"
+}

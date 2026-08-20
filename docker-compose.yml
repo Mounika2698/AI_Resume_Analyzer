@@ -1,0 +1,54 @@
+services:
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - '5000:5000'
+    environment:
+      - NODE_ENV=development
+      - PORT=5000
+      - DATABASE_URL=file:./data/resume-analyzer.db
+      - JWT_SECRET=dev-secret-key-change-in-production
+      - CORS_ORIGIN=http://localhost:5173
+      - OLLAMA_BASE_URL=http://ollama:11434
+    depends_on:
+      - ollama
+    volumes:
+      - ./server/prisma/data:/app/prisma/data
+    networks:
+      - resume-analyzer
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - '5173:5173'
+    environment:
+      - VITE_API_URL=http://localhost:5000/api
+    depends_on:
+      - server
+    networks:
+      - resume-analyzer
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - '11434:11434'
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - resume-analyzer
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:11434/api/tags']
+      interval: 5s
+      timeout: 2s
+      retries: 5
+
+volumes:
+  ollama_data:
+
+networks:
+  resume-analyzer:
+    driver: bridge
