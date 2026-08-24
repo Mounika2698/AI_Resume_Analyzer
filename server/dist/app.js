@@ -1,16 +1,30 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import { authRouter } from './routes/auth.js';
 export const createApp = () => {
     const app = express();
+    const configuredOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
+        .split(',')
+        .map((origin) => origin.trim())
+        .filter(Boolean);
+    const isDevelopment = process.env.NODE_ENV !== 'production';
     // Middleware
     app.use(helmet());
     app.use(cors({
-        origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+        origin(origin, callback) {
+            const isLocalDevelopmentOrigin = Boolean(origin && /^http:\/\/localhost:\d+$/.test(origin));
+            if (!origin || configuredOrigins.includes(origin) || (isDevelopment && isLocalDevelopmentOrigin)) {
+                callback(null, true);
+                return;
+            }
+            callback(new Error('Origin is not allowed by CORS'));
+        },
         credentials: true,
     }));
     app.use(express.json({ limit: '1mb' }));
     app.use(express.urlencoded({ limit: '1mb', extended: true }));
+    app.use('/api/auth', authRouter);
     // Health check endpoint
     app.get('/api/health', (_req, res) => {
         res.json({
@@ -31,7 +45,7 @@ export const createApp = () => {
     app.use((err, _req, res, _next) => {
         void _next;
         if (process.env.NODE_ENV !== 'test') {
-            console.error('Unhandled application error:', err.message);
+            process.stderr.write(`Unhandled application error: ${err.message}\n`);
         }
         res.status(500).json({
             success: false,

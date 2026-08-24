@@ -4,7 +4,7 @@ dotenv.config();
 const port = Number(process.env.PORT ?? 5000);
 const app = createApp();
 app.listen(port, () => {
-    console.info(`API listening on http://localhost:${port}`);
-    console.info(`Health check: http://localhost:${port}/api/health`);
+    process.stdout.write(`API listening on http://localhost:${port}\n`);
+    process.stdout.write(`Health check: http://localhost:${port}/api/health\n`);
 });
 //# sourceMappingURL=server.js.map

@@ -160,12 +160,12 @@ ai-resume-analyzer/
 docker compose up --build
 ```
 
-## 📱 Next Steps (Phase 2)
+## 🔐 Phase 2: Authentication
 
-- [ ] User authentication (registration/login)
-- [ ] JWT token management
-- [ ] Protected API routes
-- [ ] Authentication UI
+- [x] User authentication (registration/login)
+- [x] JWT token management
+- [x] Protected API route (`GET /api/auth/me`)
+- [x] Authentication UI with persistent sessions and sign-out
 
 ## 🧪 Testing
 
@@ -238,6 +238,6 @@ A: SQLite requires zero setup, is file-based (easy to backup), and is perfect fo
 
 ---
 
-**Status**: Phase 1 - Foundation Complete ✅
+**Status**: Phase 2 - Authentication Complete ✅
 
-Next Phase: Authentication (Phase 2)
+Next Phase: Resume Upload & Parsing (Phase 3)

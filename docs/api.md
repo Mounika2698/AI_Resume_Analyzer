@@ -35,14 +35,13 @@ Most endpoints require a JWT token in the `Authorization` header:
 Authorization: Bearer <jwt_token>
 ```
 
-## Endpoints (To be implemented in Phases 2+)
-
 ### Authentication Endpoints
 
-- `POST /auth/register` - Register new user
-- `POST /auth/login` - Login user
-- `POST /auth/logout` - Logout user
-- `GET /auth/me` - Get current user
+- `POST /auth/register` - Creates an account. Body: `{ "name", "email", "password" }`. Returns the safe user profile and JWT.
+- `POST /auth/login` - Signs in with `{ "email", "password" }`. Returns the safe user profile and JWT.
+- `GET /auth/me` - Returns the signed-in user's profile. Requires `Authorization: Bearer <jwt_token>`.
+
+Passwords must be 8–128 characters; names must be 2–100 characters. Registration returns `409 EMAIL_IN_USE` for an existing email, and invalid login credentials return `401 INVALID_CREDENTIALS`.
 
 ### Resume Endpoints
 
@@ -71,4 +70,4 @@ Authorization: Bearer <jwt_token>
 
 ---
 
-**Note**: Phase 1 only includes basic project setup. API endpoints will be fully documented as they're implemented in subsequent phases.
+**Note**: Resume and analysis endpoints are planned for subsequent phases.

@@ -13,4 +13,13 @@ describe('GET /api/health', () => {
     });
     expect(response.body.timestamp).toEqual(expect.any(String));
   });
+
+  it('allows a Vite development origin when its default port is unavailable', async () => {
+    const response = await request(createApp())
+      .get('/api/health')
+      .set('Origin', 'http://localhost:5174');
+
+    expect(response.status).toBe(200);
+    expect(response.headers['access-control-allow-origin']).toBe('http://localhost:5174');
+  });
 });
