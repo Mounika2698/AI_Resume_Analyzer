@@ -8,7 +8,9 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction): vo
   const token = authorization?.startsWith('Bearer ') ? authorization.slice(7) : undefined;
 
   if (!token) {
-    res.status(401).json({ success: false, message: 'Authentication is required', errorCode: 'UNAUTHORIZED' });
+    res
+      .status(401)
+      .json({ success: false, message: 'Authentication is required', errorCode: 'UNAUTHORIZED' });
     return;
   }
 
@@ -20,6 +22,10 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction): vo
     req.user = { ...payload, id: String(payload.id), email: String(payload.email) };
     next();
   } catch {
-    res.status(401).json({ success: false, message: 'Your session is invalid or has expired', errorCode: 'INVALID_TOKEN' });
+    res.status(401).json({
+      success: false,
+      message: 'Your session is invalid or has expired',
+      errorCode: 'INVALID_TOKEN',
+    });
   }
 };

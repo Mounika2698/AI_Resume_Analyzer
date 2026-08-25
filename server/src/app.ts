@@ -17,7 +17,11 @@ export const createApp = (): Express => {
     cors({
       origin(origin, callback) {
         const isLocalDevelopmentOrigin = Boolean(origin && /^http:\/\/localhost:\d+$/.test(origin));
-        if (!origin || configuredOrigins.includes(origin) || (isDevelopment && isLocalDevelopmentOrigin)) {
+        if (
+          !origin ||
+          configuredOrigins.includes(origin) ||
+          (isDevelopment && isLocalDevelopmentOrigin)
+        ) {
           callback(null, true);
           return;
         }
