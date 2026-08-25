@@ -148,11 +148,11 @@ ai-resume-analyzer/
 
    This starts:
    - Frontend: http://localhost:5173
-   - Backend: http://localhost:5000
+   - Backend: http://localhost:5001
 
 6. **Verify everything works**
    - Frontend should load: http://localhost:5173
-   - Backend health check: http://localhost:5000/api/health
+   - Backend health check: http://localhost:5001/api/health
 
 ### Docker Setup
 
@@ -166,6 +166,13 @@ docker compose up --build
 - [x] JWT token management
 - [x] Protected API route (`GET /api/auth/me`)
 - [x] Authentication UI with persistent sessions and sign-out
+
+## 📄 Phase 3: Resume Upload & Parsing
+
+- [x] Authenticated PDF, DOCX, and TXT uploads (10 MB default limit)
+- [x] Local file storage with randomized names
+- [x] Basic extraction of contact details and resume sections
+- [x] User-scoped resume list, detail, and deletion endpoints
 
 ## 🧪 Testing
 
@@ -205,7 +212,7 @@ See `.env.example` for complete configuration.
 Key variables:
 
 - `NODE_ENV` - development/production
-- `PORT` - Server port (default: 5000)
+- `PORT` - Server port (default: 5001)
 - `DATABASE_URL` - SQLite database path
 - `JWT_SECRET` - Secret for signing tokens
 - `CORS_ORIGIN` - Frontend URL for CORS
@@ -238,6 +245,6 @@ A: SQLite requires zero setup, is file-based (easy to backup), and is perfect fo
 
 ---
 
-**Status**: Phase 2 - Authentication Complete ✅
+**Status**: Phase 3 - Resume Upload & Parsing Complete ✅
 
-Next Phase: Resume Upload & Parsing (Phase 3)
+Next Phase: Job Description Management

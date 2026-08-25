@@ -34,6 +34,7 @@ model Resume {
   fileName  String
   fileType  String     // pdf, docx, txt
   fileSize  Int
+  storagePath String
   
   name      String?
   email     String?

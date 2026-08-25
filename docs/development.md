@@ -42,7 +42,7 @@ npm run dev
 This launches:
 
 - Frontend: http://localhost:5173 (with hot reload)
-- Backend: http://localhost:5000 (with auto-restart)
+- Backend: http://localhost:5001 (with auto-restart)
 
 ## Project Layout
 
@@ -350,7 +350,7 @@ console.log('Debug info:', variable);
 
 ```
 NODE_ENV=development
-PORT=5000
+PORT=5001
 DATABASE_URL=file:./dev.db
 JWT_SECRET=your-secret-here
 CORS_ORIGIN=http://localhost:5173
@@ -360,7 +360,7 @@ OLLAMA_BASE_URL=http://localhost:11434
 ### Frontend (.env)
 
 ```
-VITE_API_URL=http://localhost:5000/api
+VITE_API_URL=http://localhost:5001/api
 ```
 
 Never commit `.env` files. Use `.env.example` for defaults.
@@ -385,8 +385,8 @@ Never commit `.env` files. Use `.env.example` for defaults.
 ### Port Already in Use
 
 ```bash
-# Find process using port 5000
-lsof -i :5000
+# Find process using port 5001
+lsof -i :5001
 # Kill it
 kill -9 <PID>
 ```

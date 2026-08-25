@@ -2,7 +2,7 @@
 
 ## Base URL
 
-Development: `http://localhost:5000/api`
+Development: `http://localhost:5001/api`
 Production: (varies)
 
 ## Response Format
@@ -45,10 +45,10 @@ Passwords must be 8–128 characters; names must be 2–100 characters. Registra
 
 ### Resume Endpoints
 
-- `POST /resumes` - Upload resume
-- `GET /resumes` - List user's resumes
-- `GET /resumes/:id` - Get specific resume
-- `DELETE /resumes/:id` - Delete resume
+- `POST /resumes` - Upload a `multipart/form-data` field named `resume`. Accepts PDF, DOCX, and TXT files up to `MAX_FILE_SIZE` (10 MB by default). Requires authentication.
+- `GET /resumes` - List the authenticated user's parsed resumes. Requires authentication.
+- `GET /resumes/:id` - Get a specific parsed resume, including its extracted text. Requires authentication.
+- `DELETE /resumes/:id` - Delete a specific resume record. Requires authentication.
 
 ### Job Description Endpoints
 

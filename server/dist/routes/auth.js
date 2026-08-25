@@ -14,7 +14,9 @@ const registerSchema = credentialsSchema.extend({
 });
 const userSelect = { id: true, name: true, email: true, createdAt: true };
 const getSecret = () => process.env.JWT_SECRET || 'development-only-secret';
-const issueToken = (user) => jwt.sign({ id: user.id, email: user.email, name: user.name }, getSecret(), { expiresIn: (process.env.JWT_EXPIRES_IN || '7d') });
+const issueToken = (user) => jwt.sign({ id: user.id, email: user.email, name: user.name }, getSecret(), {
+    expiresIn: (process.env.JWT_EXPIRES_IN || '7d'),
+});
 const invalidInput = (issues) => ({
     success: false,
     message: issues[0]?.message || 'Invalid request data',
@@ -28,11 +30,20 @@ authRouter.post('/register', async (req, res, next) => {
         const email = parsed.data.email.toLowerCase();
         const existing = await prisma.user.findUnique({ where: { email } });
         if (existing)
-            return res.status(409).json({ success: false, message: 'An account with this email already exists', errorCode: 'EMAIL_IN_USE' });
+            return res.status(409).json({
+                success: false,
+                message: 'An account with this email already exists',
+                errorCode: 'EMAIL_IN_USE',
+            });
         const password = await bcrypt.hash(parsed.data.password, 12);
-        const user = await prisma.user.create({ data: { ...parsed.data, email, password }, select: userSelect });
+        const user = await prisma.user.create({
+            data: { ...parsed.data, email, password },
+            select: userSelect,
+        });
         const token = issueToken(user);
-        return res.status(201).json({ success: true, message: 'Account created successfully', data: { user, token } });
+        return res
+            .status(201)
+            .json({ success: true, message: 'Account created successfully', data: { user, token } });
     }
     catch (error) {
         return next(error);
@@ -43,14 +54,24 @@ authRouter.post('/login', async (req, res, next) => {
         const parsed = credentialsSchema.safeParse(req.body);
         if (!parsed.success)
             return res.status(400).json(invalidInput(parsed.error.issues));
-        const user = await prisma.user.findUnique({ where: { email: parsed.data.email.toLowerCase() } });
+        const user = await prisma.user.findUnique({
+            where: { email: parsed.data.email.toLowerCase() },
+        });
         if (!user || !(await bcrypt.compare(parsed.data.password, user.password))) {
-            return res.status(401).json({ success: false, message: 'Invalid email or password', errorCode: 'INVALID_CREDENTIALS' });
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid email or password',
+                errorCode: 'INVALID_CREDENTIALS',
+            });
         }
         const token = issueToken(user);
         const { password: _password, ...safeUser } = user;
         void _password;
-        return res.json({ success: true, message: 'Signed in successfully', data: { user: safeUser, token } });
+        return res.json({
+            success: true,
+            message: 'Signed in successfully',
+            data: { user: safeUser, token },
+        });
     }
     catch (error) {
         return next(error);
@@ -60,7 +81,9 @@ authRouter.get('/me', requireAuth, async (req, res, next) => {
     try {
         const user = await prisma.user.findUnique({ where: { id: req.user.id }, select: userSelect });
         if (!user)
-            return res.status(401).json({ success: false, message: 'Account no longer exists', errorCode: 'UNAUTHORIZED' });
+            return res
+                .status(401)
+                .json({ success: false, message: 'Account no longer exists', errorCode: 'UNAUTHORIZED' });
         return res.json({ success: true, data: { user } });
     }
     catch (error) {

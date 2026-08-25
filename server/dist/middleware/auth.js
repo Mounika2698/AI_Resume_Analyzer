@@ -4,7 +4,9 @@ export const requireAuth = (req, res, next) => {
     const authorization = req.header('authorization');
     const token = authorization?.startsWith('Bearer ') ? authorization.slice(7) : undefined;
     if (!token) {
-        res.status(401).json({ success: false, message: 'Authentication is required', errorCode: 'UNAUTHORIZED' });
+        res
+            .status(401)
+            .json({ success: false, message: 'Authentication is required', errorCode: 'UNAUTHORIZED' });
         return;
     }
     try {
@@ -16,7 +18,11 @@ export const requireAuth = (req, res, next) => {
         next();
     }
     catch {
-        res.status(401).json({ success: false, message: 'Your session is invalid or has expired', errorCode: 'INVALID_TOKEN' });
+        res.status(401).json({
+            success: false,
+            message: 'Your session is invalid or has expired',
+            errorCode: 'INVALID_TOKEN',
+        });
     }
 };
 //# sourceMappingURL=auth.js.map
