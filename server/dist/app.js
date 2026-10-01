@@ -3,6 +3,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { authRouter } from './routes/auth.js';
 import { resumesRouter } from './routes/resumes.js';
+import { jobsRouter } from './routes/jobs.js';
+import { analysesRouter } from './routes/analyses.js';
 export const createApp = () => {
     const app = express();
     const configuredOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
@@ -29,6 +31,8 @@ export const createApp = () => {
     app.use(express.urlencoded({ limit: '1mb', extended: true }));
     app.use('/api/auth', authRouter);
     app.use('/api/resumes', resumesRouter);
+    app.use('/api/jobs', jobsRouter);
+    app.use('/api/analyses', analysesRouter);
     // Health check endpoint
     app.get('/api/health', (_req, res) => {
         res.json({

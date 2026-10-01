@@ -2,10 +2,9 @@
 
 > An open-source, $0-cost resume analyzer foundation that will use local Ollama for AI inference.
 
-**Status: Phase 1 complete.** The monorepo, client, API health check, Prisma +
-SQLite setup, Docker configuration, and quality tooling are operational.
-Authentication, uploads, ATS scoring, AI analysis, and interview generation are
-planned later phases and are not presented as implemented functionality.
+**Status: Phase 4 complete.** Authentication, secure resume uploads and parsing,
+job descriptions, and transparent ATS scoring are operational. AI-powered
+qualitative feedback and interview generation are planned later phases.
 
 ## 🚀 Features
 
@@ -14,7 +13,10 @@ planned later phases and are not presented as implemented functionality.
 - ✅ Prisma ORM + local SQLite schema and fictional development seed
 - ✅ Optional Docker Compose configuration
 - ✅ ESLint, Prettier, Vitest, and GitHub Actions foundation
-- ⏳ Authentication, upload parsing, ATS scoring, AI analysis, and dashboard
+- ✅ JWT authentication and user-scoped data
+- ✅ PDF, DOCX, and TXT resume upload and parsing
+- ✅ Job descriptions and persisted ATS analyses
+- ⏳ AI analysis and interview generation
 
 ## 💰 Cost
 
@@ -173,6 +175,13 @@ docker compose up --build
 - [x] Local file storage with randomized names
 - [x] Basic extraction of contact details and resume sections
 - [x] User-scoped resume list, detail, and deletion endpoints
+
+## 🎯 Phase 4: ATS Scoring
+
+- [x] Save job descriptions, including required and preferred skills
+- [x] Score resumes against a job description with transparent 0–100 scoring
+- [x] Persist score breakdowns and missing required skills
+- [x] Create and review analyses from the authenticated workspace
 
 ## 🧪 Testing
 

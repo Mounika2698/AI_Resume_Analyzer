@@ -3,6 +3,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { authRouter } from './routes/auth.js';
 import { resumesRouter } from './routes/resumes.js';
+import { jobsRouter } from './routes/jobs.js';
+import { analysesRouter } from './routes/analyses.js';
 
 export const createApp = (): Express => {
   const app = express();
@@ -35,6 +37,8 @@ export const createApp = (): Express => {
   app.use(express.urlencoded({ limit: '1mb', extended: true }));
   app.use('/api/auth', authRouter);
   app.use('/api/resumes', resumesRouter);
+  app.use('/api/jobs', jobsRouter);
+  app.use('/api/analyses', analysesRouter);
 
   // Health check endpoint
   app.get('/api/health', (_req: Request, res: Response) => {

@@ -12,7 +12,24 @@ type Resume = {
   createdAt: string;
 };
 type ResumesResponse = { success: boolean; message?: string; data?: { resumes: Resume[] } };
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+type Analysis = {
+  id: string;
+  overallScore: number;
+  keywordMatchScore: number;
+  skillsMatchScore: number;
+  experienceScore: number;
+  educationScore: number;
+  structureScore: number;
+  formatScore: number;
+  missingSkills: string[];
+  resume: { fileName: string };
+  jobDescription: { title: string; company: string | null };
+  createdAt: string;
+};
+type AnalysesResponse = { success: boolean; message?: string; data?: { analyses: Analysis[] } };
+// In local development, use Vite's proxy so browser requests stay same-origin.
+// Docker and deployed builds use the configured API URL instead.
+const API_URL = import.meta.env.DEV ? '/api' : import.meta.env.VITE_API_URL || '/api';
 const TOKEN_KEY = 'resume-analyzer-token';
 
 export default function App() {
@@ -21,16 +38,31 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [resumes, setResumes] = useState<Resume[]>([]);
+  const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   async function loadResumes() {
     const token = localStorage.getItem(TOKEN_KEY);
     if (!token) return;
-    const response = await fetch(`${API_URL}/resumes`, {
+    try {
+      const response = await fetch(`${API_URL}/resumes`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const result = (await response.json()) as ResumesResponse;
+      if (response.ok) setResumes(result.data?.resumes ?? []);
+    } catch {
+      // A refresh failure must not make a completed upload appear to have failed.
+    }
+  }
+
+  async function loadAnalyses() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) return;
+    const response = await fetch(`${API_URL}/analyses`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    const result = (await response.json()) as ResumesResponse;
-    if (response.ok) setResumes(result.data?.resumes ?? []);
+    const result = (await response.json()) as AnalysesResponse;
+    if (response.ok) setAnalyses(result.data?.analyses ?? []);
   }
 
   useEffect(() => {
@@ -42,6 +74,7 @@ export default function App() {
         if (response.ok && body.data?.user) {
           setUser(body.data.user);
           void loadResumes();
+          void loadAnalyses();
         } else localStorage.removeItem(TOKEN_KEY);
       })
       .catch(() => setMessage('Unable to reach the API. Please try again shortly.'));
@@ -72,6 +105,7 @@ export default function App() {
 
   async function uploadResume(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
     if (!selectedFile) return setMessage('Choose a PDF, DOCX, or TXT file first.');
     const token = localStorage.getItem(TOKEN_KEY);
     if (!token) return;
@@ -88,9 +122,9 @@ export default function App() {
       const result = (await response.json()) as { message?: string };
       if (!response.ok) return setMessage(result.message || 'Your resume could not be uploaded.');
       setSelectedFile(null);
-      event.currentTarget.reset();
+      form.reset();
       setMessage('Your resume was uploaded and parsed.');
-      await loadResumes();
+      void loadResumes();
     } catch {
       setMessage('Unable to reach the API. Please try again shortly.');
     } finally {
@@ -116,6 +150,46 @@ export default function App() {
     }
   }
 
+  async function analyzeResume(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const values = new FormData(form);
+    const resumeId = String(values.get('resumeId') || '');
+    const title = String(values.get('jobTitle') || '');
+    const company = String(values.get('company') || '');
+    const content = String(values.get('jobContent') || '');
+    if (!resumeId) return setMessage('Upload and select a resume before running an analysis.');
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) return;
+    setLoading(true);
+    setMessage('');
+    try {
+      const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+      const jobResponse = await fetch(`${API_URL}/jobs`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ title, company: company || undefined, content }),
+      });
+      const jobResult = await jobResponse.json();
+      if (!jobResponse.ok)
+        return setMessage(jobResult.message || 'The job description could not be saved.');
+      const response = await fetch(`${API_URL}/analyses`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ resumeId, jobDescriptionId: jobResult.data.job.id }),
+      });
+      const result = await response.json();
+      if (!response.ok) return setMessage(result.message || 'The analysis could not be completed.');
+      form.reset();
+      setMessage(`ATS analysis complete: ${result.data.analysis.overallScore}/100.`);
+      await loadAnalyses();
+    } catch {
+      setMessage('Unable to reach the API. Please try again shortly.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   if (user)
     return (
       <main className="min-h-screen bg-slate-50 px-6 py-12 text-slate-900">
@@ -125,7 +199,7 @@ export default function App() {
           </span>
           <h1 className="mt-4 text-4xl font-bold tracking-tight">Welcome, {user.name}.</h1>
           <p className="mt-3 text-lg text-slate-600">
-            Upload a resume to extract and save its details.
+            Upload your resume, then compare it to a job description with a transparent ATS score.
           </p>
           <form
             className="mt-8 rounded-2xl border border-dashed border-indigo-300 bg-indigo-50/50 p-6"
@@ -154,6 +228,70 @@ export default function App() {
               {loading ? 'Uploading…' : 'Upload and parse'}
             </button>
           </form>
+          <section className="mt-8 rounded-2xl border border-slate-200 p-6">
+            <h2 className="text-lg font-bold">Run an ATS analysis</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Scores are based on keyword, skill, experience, education, structure, and readability
+              signals.
+            </p>
+            <form className="mt-5 space-y-4" onSubmit={analyzeResume}>
+              <label className="block text-sm font-semibold text-slate-700">
+                Resume
+                <select
+                  required
+                  name="resumeId"
+                  defaultValue=""
+                  className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2"
+                >
+                  <option value="" disabled>
+                    Select an uploaded resume
+                  </option>
+                  {resumes.map((resume) => (
+                    <option key={resume.id} value={resume.id}>
+                      {resume.fileName}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="block text-sm font-semibold text-slate-700">
+                  Target role
+                  <input
+                    required
+                    name="jobTitle"
+                    minLength={2}
+                    className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2"
+                    placeholder="Frontend Engineer"
+                  />
+                </label>
+                <label className="block text-sm font-semibold text-slate-700">
+                  Company <span className="font-normal">(optional)</span>
+                  <input
+                    name="company"
+                    className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2"
+                    placeholder="Acme Inc."
+                  />
+                </label>
+              </div>
+              <label className="block text-sm font-semibold text-slate-700">
+                Job description
+                <textarea
+                  required
+                  name="jobContent"
+                  minLength={50}
+                  rows={6}
+                  className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2"
+                  placeholder="Paste the full job description here…"
+                />
+              </label>
+              <button
+                disabled={loading || !resumes.length}
+                className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+              >
+                {loading ? 'Analyzing…' : 'Analyze match'}
+              </button>
+            </form>
+          </section>
           <section className="mt-8">
             <h2 className="text-lg font-bold">Your resumes</h2>
             {resumes.length === 0 ? (
@@ -175,6 +313,44 @@ export default function App() {
                     >
                       Delete
                     </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+          <section className="mt-8">
+            <h2 className="text-lg font-bold">Recent analyses</h2>
+            {analyses.length === 0 ? (
+              <p className="mt-3 text-sm text-slate-500">No analyses yet.</p>
+            ) : (
+              <ul className="mt-3 space-y-3">
+                {analyses.map((analysis) => (
+                  <li key={analysis.id} className="rounded-xl border border-slate-200 p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="font-semibold">{analysis.jobDescription.title}</p>
+                        <p className="mt-1 text-sm text-slate-500">
+                          {analysis.resume.fileName}
+                          {analysis.jobDescription.company
+                            ? ` · ${analysis.jobDescription.company}`
+                            : ''}
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-indigo-50 px-3 py-1 text-lg font-bold text-indigo-700">
+                        {analysis.overallScore}/100
+                      </span>
+                    </div>
+                    <p className="mt-3 text-sm text-slate-600">
+                      Keywords {analysis.keywordMatchScore}/30 · Skills {analysis.skillsMatchScore}
+                      /25 · Experience {analysis.experienceScore}/15 · Education{' '}
+                      {analysis.educationScore}/5 · Structure{' '}
+                      {analysis.structureScore + analysis.formatScore}/15
+                    </p>
+                    {analysis.missingSkills.length > 0 && (
+                      <p className="mt-2 text-sm text-amber-700">
+                        Missing skills: {analysis.missingSkills.join(', ')}
+                      </p>
+                    )}
                   </li>
                 ))}
               </ul>

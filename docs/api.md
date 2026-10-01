@@ -52,16 +52,14 @@ Passwords must be 8–128 characters; names must be 2–100 characters. Registra
 
 ### Job Description Endpoints
 
-- `POST /jobs` - Create job description
-- `GET /jobs` - List user's job descriptions
-- `DELETE /jobs/:id` - Delete job description
+- `POST /jobs` - Create a job description. Body: `{ "title", "company?", "content", "requiredSkills?", "preferredSkills?" }`. When required skills are omitted, a keyword set is derived from the description.
+- `GET /jobs` - List the authenticated user's job descriptions.
+- `DELETE /jobs/:id` - Delete an authenticated user's job description.
 
 ### Analysis Endpoints
 
-- `POST /analysis` - Create analysis
-- `GET /analysis` - List user's analyses
-- `GET /analysis/:id` - Get specific analysis
-- `DELETE /analysis/:id` - Delete analysis
+- `POST /analyses` - Create an ATS analysis. Body: `{ "resumeId", "jobDescriptionId" }`. Returns a 0–100 score, category breakdown, and missing required skills.
+- `GET /analyses` - List the authenticated user's analyses.
 
 ### Interview Question Endpoints
 
@@ -70,4 +68,4 @@ Passwords must be 8–128 characters; names must be 2–100 characters. Registra
 
 ---
 
-**Note**: Resume and analysis endpoints are planned for subsequent phases.
+ATS scores are deterministic and use the weights documented in [ATS Scoring](ats-scoring.md). Analyses and job descriptions are user-scoped.
